@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
 import '../data/database_helper.dart';
-import 'table_screen.dart';
 
-class AddCompraScreen extends StatefulWidget {
+class EditCompraScreen extends StatefulWidget {
+  final Map<String, dynamic> compra;
+
+  EditCompraScreen({required this.compra});
+
   @override
-  _AddCompraScreenState createState() => _AddCompraScreenState();
+  _EditCompraScreenState createState() => _EditCompraScreenState();
 }
 
-class _AddCompraScreenState extends State<AddCompraScreen> {
+class _EditCompraScreenState extends State<EditCompraScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _montoController = TextEditingController();
-  String _categoria = 'Alimentación';
+  late TextEditingController _montoController;
+  late String _categoria;
+
+  @override
+  void initState() {
+    super.initState();
+    _montoController = TextEditingController(text: widget.compra['monto'].toString());
+    _categoria = widget.compra['categoria'];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Añadir Compra')),
+      appBar: AppBar(title: Text('Editar Compra')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -56,21 +66,19 @@ class _AddCompraScreenState extends State<AddCompraScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      await DatabaseHelper.instance.insertCompra({
+                      await DatabaseHelper.instance.updateCompra({
+                        'id': widget.compra['id'],
                         'monto': double.parse(_montoController.text),
                         'categoria': _categoria,
-                        'fecha': DateTime.now().toIso8601String(),
+                        'fecha': widget.compra['fecha'],
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Compra agregada exitosamente')),
+                        SnackBar(content: Text('Compra actualizada exitosamente')),
                       );
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => TableScreen()),
-                      );
+                      Navigator.pop(context);
                     }
                   },
-                  child: Text('Guardar'),
+                  child: Text('Actualizar'),
                 ),
               ),
             ],
