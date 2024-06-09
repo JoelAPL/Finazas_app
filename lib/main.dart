@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 import 'screens/add_compra.dart';
 import 'screens/stats_screen.dart';
+import 'screens/table_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -32,6 +33,15 @@ class HomePage extends StatelessWidget {
                 );
               },
               child: Text('Compras'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => TableScreen()),
+                );
+              },
+              child: Text('Tabla compras'),
             ),
             ElevatedButton(
               onPressed: null,
