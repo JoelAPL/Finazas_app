@@ -35,15 +35,15 @@ class DatabaseHelper {
       CREATE TABLE categorias(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL
-      )''');
+      )
+    ''');
 
     await db.insert('categorias', {'nombre': 'Comida'});
-
   }
 
-  Future<void> insertCompra(Map<String, dynamic> row) async {
+  Future<int> insertCompra(Map<String, dynamic> row) async {
     final db = await instance.database;
-    await db.insert('compras', row);
+    return await db.insert('compras', row);
   }
 
   Future<void> insertCategoria(Map<String, dynamic> row) async {
@@ -56,11 +56,17 @@ class DatabaseHelper {
     return await db.query('compras');
   }
 
-Future<List<String>> consultarDatos() async {
-  final db = await instance.database;
-  List<Map<String, dynamic>> result = await db.query('categorias', columns: ['nombre']);
-  return List.generate(result.length, (index) => result[index]['nombre'] as String);
-}
+  Future<List<String>> consultarDatos() async {
+    final db = await instance.database;
+    List<Map<String, dynamic>> result = await db.query('categorias', columns: ['nombre']);
+    return List.generate(result.length, (index) => result[index]['nombre'] as String);
+  }
+
+  Future<int> updateCompra(Map<String, dynamic> row) async {
+    final db = await instance.database;
+    int id = row['id'];
+    return await db.update('compras', row, where: 'id = ?', whereArgs: [id]);
+  }
 
   Future close() async {
     final db = await instance.database;
