@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/database_helper.dart';
-import 'table_screen.dart';
+import 'tags_settings.dart';
+
+enum MenuItem { item1, item2 }
 
 class AddCompraScreen extends StatefulWidget {
   @override
@@ -11,17 +13,57 @@ class _AddCompraScreenState extends State<AddCompraScreen> {
   final _formKey = GlobalKey<FormState>();
   final _montoController = TextEditingController();
   String _categoria = 'Alimentación';
+  List<String> _categorias = ['Alimentación']; // Inicialmente, solo contiene "Alimentación"
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategorias();
+  }
+
+  Future<void> _fetchCategorias() async {
+    List<String> categorias = await DatabaseHelper.instance.consultarDatos();
+    setState(() {
+      _categorias = categorias;
+      _categoria = categorias.isNotEmpty ? categorias[0] : 'Alimentación'; // Actualiza _categoria si hay categorías disponibles
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Añadir Compra')),
+      appBar: AppBar(
+        title: Text('Añadir Compra'),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        actions: [
+          PopupMenuButton<MenuItem>(
+            onSelected: (value) {
+              if (value == MenuItem.item1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => TagsSettings()),
+                );
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: MenuItem.item1,
+                child: Text('Etiquetas'),
+              ),
+              const PopupMenuItem(
+                value: MenuItem.item2,
+                child: Text('Logout'),
+              )
+            ],
+          )
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextFormField(
                 controller: _montoController,
@@ -34,7 +76,6 @@ class _AddCompraScreenState extends State<AddCompraScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
               DropdownButtonFormField<String>(
                 value: _categoria,
                 onChanged: (String? newValue) {
@@ -42,7 +83,7 @@ class _AddCompraScreenState extends State<AddCompraScreen> {
                     _categoria = newValue!;
                   });
                 },
-                items: <String>['Alimentación', 'Casa', 'Transporte', 'Ropa']
+                items: _categorias
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
@@ -52,26 +93,18 @@ class _AddCompraScreenState extends State<AddCompraScreen> {
                 decoration: InputDecoration(labelText: 'Categoría'),
               ),
               SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      await DatabaseHelper.instance.insertCompra({
-                        'monto': double.parse(_montoController.text),
-                        'categoria': _categoria,
-                        'fecha': DateTime.now().toIso8601String(),
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Compra agregada exitosamente')),
-                      );
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => TableScreen()),
-                      );
-                    }
-                  },
-                  child: Text('Guardar'),
-                ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    await DatabaseHelper.instance.insertCompra({
+                      'monto': double.parse(_montoController.text),
+                      'categoria': _categoria,
+                      'fecha': DateTime.now().toIso8601String(),
+                    });
+                    Navigator.pop(context);
+                  }
+                },
+                child: Text('Guardar'),
               ),
             ],
           ),
